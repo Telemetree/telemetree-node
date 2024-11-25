@@ -14,7 +14,12 @@ class Config {
   async __fetchConfig() {
     try {
       const response = await axios.get(
-        `https://config.ton.solutions/v1/client/config?project=${this.projectId}`
+        `https://config.ton.solutions/v1/client/config?project=${this.projectId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`
+          }
+        }
       );
       return {
         host: response.data.host,

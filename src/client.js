@@ -15,16 +15,47 @@ class TelemetreeClient {
     this.httpClient = new HttpClient(this.settings);
   }
 
-  async trackUpdate(update) {
-    if (!this.eventBuilder.shouldTrackUpdate(update)) {
+  async track(eventName, eventProperties = {}) {
+    if (!eventName) {
+      throw new Error("Event name is not set.");
+    }
+
+    const eventData = {
+      ...this.eventBuilder.buildPayload({}, eventName),
+      event: {
+        ...this.eventBuilder.buildPayload({}, eventName).event,
+        params: eventProperties
+      }
+    };
+
+    const encryptedData = this.encryption.encrypt(JSON.stringify(eventData));
+    try {
+      const payload = {
+        body: encryptedData.body,
+        key: encryptedData.key,
+        iv: encryptedData.iv
+      };
+      await this.httpClient.post(payload);
+    } catch (error) {
+      console.error("Failed to track event:", error);
+      throw error;
+    }
+  }
+
+  async trackUpdate(updateData) {
+    const parsedUpdate = this.eventBuilder.parseTelegramUpdate(updateData);
+    if (!parsedUpdate) {
       return;
     }
 
-    const parsedUpdate = this.eventBuilder.parseTelegramUpdate(update);
     const encryptedData = this.encryption.encrypt(JSON.stringify(parsedUpdate));
-
     try {
-      await this.httpClient.post(encryptedData);
+      const payload = {
+        body: encryptedData.body,
+        key: encryptedData.key,
+        iv: encryptedData.iv
+      };
+      await this.httpClient.post(payload);
     } catch (error) {
       console.error("Failed to track update:", error);
       throw error;
