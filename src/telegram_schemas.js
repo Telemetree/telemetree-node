@@ -52,7 +52,7 @@ class InlineQuery {
 class Update {
   constructor(data, appName) {
     this.update_id = data.update_id;
-    this.app_name = appName;
+    this.app_name = appName || "None";
     this.message = data.message ? new Message(data.message) : null;
     this.edited_message = data.edited_message
       ? new EditedMessage(data.edited_message)
