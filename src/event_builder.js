@@ -10,35 +10,26 @@ class EventBuilder {
     this.appName = this.config.app_name;
   }
 
-  buildPayload(update, eventType) {
+  buildPayload(update, eventType = "message") {
     const from = this._getFromUser(update);
-    const sessionId = new Date().getTime().toString(); // Millisecond timestamp as session ID
 
-    const userDetails = {
-      username: from.username || "",
-      firstName: from.first_name || "",
-      lastName: from.last_name || "",
-      isPremium: Boolean(from.is_premium),
-      writeAccess: Boolean(from.allows_write_to_pm),
-      telegramId: from.id,
-      languageCode: from.language_code || null
+    const payload = {
+      application_id: this.settings.apiKey,
+      datetime: new Date().toISOString(),
+      username: from.username || undefined,
+      firstname: from.first_name || undefined,
+      lastname: from.last_name || undefined,
+      is_premium: Boolean(from.is_premium),
+      telegram_id: from.id || 0,
+      language: from.language_code || undefined,
+      session_id: Math.floor(Date.now() / 1000),
+      event_source: "node-sdk",
+      event_type:
+        typeof eventType === "object" ? eventType.event_type : eventType,
+      app_name: this.appName
     };
 
-    const eventDetails = this._extractEventDetails(update, eventType);
-
-    return {
-      applicationId: this.projectId,
-      eventType: eventType,
-      eventSource: "telegram",
-      timestamp: Math.floor(Date.now() / 1000),
-      sessionId: sessionId,
-      platform: "telegram",
-      chatType: this._getChatType(update),
-      chatInstance: this._getChatInstance(update),
-      user: userDetails,
-      event: eventDetails,
-      isSystemEvent: false
-    };
+    return payload;
   }
 
   _getChatType(update) {
@@ -57,67 +48,34 @@ class EventBuilder {
 
   _getFromUser(update) {
     // Extract user information from various update types
-    if (update.message) return update.message.from;
-    if (update.edited_message) return update.edited_message.from;
-    if (update.channel_post) return update.channel_post.from;
-    if (update.edited_channel_post) return update.edited_channel_post.from;
-    if (update.callback_query) return update.callback_query.from;
-    if (update.inline_query) return update.inline_query.from;
+    let from = null;
 
-    // Default empty user object if no user info found
-    return {
-      id: 0,
-      is_premium: false,
-      username: "",
-      first_name: "",
-      last_name: "",
-      language_code: null
-    };
+    if (!update) {
+      throw new Error("Update object is null or undefined");
+    }
+
+    if (update.message) from = update.message.from;
+    else if (update.edited_message) from = update.edited_message.from;
+    else if (update.channel_post) from = update.channel_post.from;
+    else if (update.edited_channel_post) from = update.edited_channel_post.from;
+    else if (update.callback_query) from = update.callback_query.from;
+    else if (update.inline_query) from = update.inline_query.from;
+
+    // Validate we have a proper user object with required fields
+    if (!from) {
+      throw new Error("No valid user data found in update object");
+    }
+
+    if (!from.id) {
+      throw new Error("User object missing required id field");
+    }
+
+    return from;
   }
 
   _extractEventDetails(update, eventType) {
-    const details = {
-      type: eventType,
-      params: {}
-    };
-
-    switch (eventType) {
-      case "message":
-        details.params = {
-          text: update.message?.text,
-          messageId: update.message?.message_id,
-          date: update.message?.date,
-          chat: update.message?.chat
-        };
-        break;
-      case "command":
-        const [command, ...args] = update.message.text.split(" ");
-        details.params = {
-          command: command.substring(1),
-          args: args,
-          messageId: update.message.message_id,
-          date: update.message.date,
-          chat: update.message.chat
-        };
-        break;
-      case "callback_query":
-        details.params = {
-          queryId: update.callback_query?.id,
-          data: update.callback_query?.data,
-          messageId: update.callback_query?.message?.message_id,
-          chatInstance: update.callback_query?.chat_instance
-        };
-        break;
-      case "inline_query":
-        details.params = {
-          queryId: update.inline_query?.id,
-          query: update.inline_query?.query,
-          offset: update.inline_query?.offset
-        };
-        break;
-    }
-
-    return details;
+    // This method is now unused as we're sending a simpler payload
+    return eventType;
   }
 
   parseTelegramUpdate(updateDict) {

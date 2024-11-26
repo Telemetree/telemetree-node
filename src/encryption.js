@@ -1,117 +1,92 @@
-const NodeRSA = require("node-rsa");
-const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
+const wasmExecPath = path.join(__dirname, "wasm_exec.js");
+require(wasmExecPath);
 
 class EncryptionService {
   constructor(publicKey) {
-    console.log("Received public key:", publicKey);
-    this.publicKey = new NodeRSA({ environment: "node" });
-    // Clean the key and ensure proper PEM format
-    const cleanKey = publicKey.replace(/-----[^-]+-----/g, "").trim();
-    const formattedKey = `-----BEGIN RSA PUBLIC KEY-----\n${cleanKey}\n-----END RSA PUBLIC KEY-----`;
-    console.log("Formatted key:", formattedKey);
-    this.publicKey.importKey(formattedKey, "pkcs1-public-pem");
+    this.publicKey = publicKey;
+    this.wasmEncrypt = null;
+    this.isInitialized = false;
+    this.initializeWasm();
   }
 
-  rsaEncrypt(data) {
+  async initializeWasm() {
+    if (this.isInitialized) return;
+
+    const go = new Go();
     try {
-      // Convert to hex string first
-      const hexStr = Buffer.isBuffer(data)
-        ? data.toString("hex")
-        : Buffer.from(data).toString("hex");
-      // Encrypt the hex string using base64 encoding for RSA
-      const encrypted = this.publicKey.encrypt(hexStr, "base64", "utf8");
-      return encrypted;
-    } catch (error) {
-      console.error("RSA encryption error:", error);
-      throw error;
+      const wasmPath = path.join(__dirname, "analytics.wasm");
+      const wasmBuffer = fs.readFileSync(wasmPath);
+      const result = await WebAssembly.instantiate(wasmBuffer, go.importObject);
+      go.run(result.instance);
+
+      if (typeof globalThis.encrypt !== "function") {
+        throw new Error("WASM encryption function not found");
+      }
+
+      this.wasmEncrypt = globalThis.encrypt;
+      this.isInitialized = true;
+    } catch (err) {
+      console.error("Failed to initialize WASM module:", err);
+      throw err;
     }
   }
 
-  generateAesKeyAndIv() {
-    const key = crypto.randomBytes(16);
-    const iv = crypto.randomBytes(16);
-    return [key, iv];
-  }
+  async encrypt(message) {
+    if (!this.isInitialized) {
+      await this.initializeWasm();
+    }
 
-  addPKCS7Padding(data) {
-    const blockSize = 16;
-    const padding = blockSize - (data.length % blockSize);
-    const paddingBuffer = Buffer.alloc(padding, padding);
-    return Buffer.concat([data, paddingBuffer]);
-  }
-
-  encryptWithAes(key, iv, message) {
-    const cipher = crypto.createCipheriv("aes-128-cbc", key, iv);
-    cipher.setAutoPadding(false);
-
-    const messageBuffer = Buffer.from(message, "utf8");
-    const paddedMessage = this.addPKCS7Padding(messageBuffer);
-
-    const encrypted = Buffer.concat([
-      cipher.update(paddedMessage),
-      cipher.final()
-    ]);
-
-    return encrypted;
-  }
-
-  encrypt(message) {
     try {
-      console.log("Input message type:", typeof message);
-      console.log("Input message:", message);
+      const messageObj =
+        typeof message === "string" ? JSON.parse(message) : message;
+      console.log("Encryption input:", messageObj);
 
-      // Ensure message is a string
-      const messageStr =
-        typeof message === "object" ? JSON.stringify(message) : String(message);
-      console.log("Normalized message:", messageStr);
+      if (!messageObj.telegram_id) {
+        console.error("Missing telegram_id in message:", messageObj);
+        throw new Error("Message must contain telegram_id");
+      }
 
-      // Generate key and IV
-      const [aesKey, iv] = this.generateAesKeyAndIv();
-      console.log("AES Key (hex):", aesKey.toString("hex"));
-      console.log("IV (hex):", iv.toString("hex"));
-      console.log("Raw AES Key:", aesKey.toString("hex"));
-      console.log("Raw IV:", iv.toString("hex"));
-      console.log("Generated AES Key length:", aesKey.length);
-      console.log("Generated IV length:", iv.length);
+      const messageStr = JSON.stringify(messageObj);
+      const result = this.wasmEncrypt(
+        this.publicKey,
+        messageObj.telegram_id.toString(),
+        messageStr
+      );
+      console.log("Raw WASM encryption result:", result);
 
-      const encryptedMessage = this.encryptWithAes(aesKey, iv, message);
-      console.log("Encrypted message (hex):", encryptedMessage.toString("hex"));
-      console.log("Encrypted message length:", encryptedMessage.length);
+      let encryptedData;
+      try {
+        encryptedData = JSON.parse(result);
+        console.log("Parsed encryption data:", encryptedData);
+      } catch (parseError) {
+        console.error("Failed to parse WASM result:", parseError);
+        throw new Error("WASM returned invalid JSON");
+      }
 
-      const encryptedKey = this.rsaEncrypt(aesKey);
-      const encryptedIv = this.rsaEncrypt(iv);
+      // Log individual fields
+      console.log("body:", encryptedData.body);
+      console.log("key:", encryptedData.key);
+      console.log("iv:", encryptedData.iv);
 
-      console.log("Encrypted key (hex):", encryptedKey.toString("hex"));
-      console.log("Encrypted IV (hex):", encryptedIv.toString("hex"));
-      console.log("Encrypted key length:", encryptedKey.length);
-      console.log("Encrypted IV length:", encryptedIv.length);
+      // Detailed validation
+      const missingFields = [];
+      if (!encryptedData.body) missingFields.push("body");
+      if (!encryptedData.key) missingFields.push("key");
+      if (!encryptedData.iv) missingFields.push("iv");
 
-      const result = {
-        body: encryptedMessage.toString("base64"),
-        key: encryptedKey, // Already base64 from rsaEncrypt
-        iv: encryptedIv // Already base64 from rsaEncrypt
-      };
-
-      console.log("Final payload structure:", {
-        body_length: result.body.length,
-        key_length: result.key.length,
-        iv_length: result.iv.length
-      });
-
-      // Validate the payload
-      if (
-        typeof result.body !== "string" ||
-        typeof result.key !== "string" ||
-        typeof result.iv !== "string"
-      ) {
+      if (missingFields.length > 0) {
         throw new Error(
-          "Encryption failed: payload contains non-string values"
+          `WASM encryption missing fields: ${missingFields.join(", ")}`
         );
       }
 
-      console.log("Payload validation passed - all fields are strings");
-
-      return result;
+      return {
+        body: encryptedData.body,
+        key: encryptedData.key,
+        iv: encryptedData.iv
+      };
     } catch (error) {
       console.error("Encryption error:", error);
       throw error;

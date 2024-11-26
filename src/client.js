@@ -16,26 +16,31 @@ class TelemetreeClient {
   }
 
   async track(eventName, eventProperties = {}) {
+    if (!this.eventBuilder) {
+      throw new Error("Client not initialized. Call initialize() first.");
+    }
+
     if (!eventName) {
       throw new Error("Event name is not set.");
     }
 
-    const eventData = {
-      ...this.eventBuilder.buildPayload({}, eventName),
-      event: {
-        ...this.eventBuilder.buildPayload({}, eventName).event,
-        params: eventProperties
-      }
-    };
+    const eventData = this.eventBuilder.buildPayload({}, eventName);
 
-    const encryptedData = this.encryption.encrypt(JSON.stringify(eventData));
+    const encryptedData = await this.encryption.encrypt(eventData);
     try {
       const payload = {
         body: encryptedData.body,
         key: encryptedData.key,
         iv: encryptedData.iv
       };
-      await this.httpClient.post(payload);
+      const response = await this.httpClient.post(payload);
+      if (!response.success) {
+        console.error("Failed to track event:", response);
+        throw new Error(
+          `Tracking failed: ${response.error || "Unknown error"}`
+        );
+      }
+      return response;
     } catch (error) {
       console.error("Failed to track event:", error);
       throw error;
@@ -43,19 +48,32 @@ class TelemetreeClient {
   }
 
   async trackUpdate(updateData) {
+    if (!this.eventBuilder) {
+      throw new Error("Client not initialized. Call initialize() first.");
+    }
+
     const parsedUpdate = this.eventBuilder.parseTelegramUpdate(updateData);
     if (!parsedUpdate) {
       return;
     }
 
-    const encryptedData = this.encryption.encrypt(JSON.stringify(parsedUpdate));
+    // Build payload with user data
+    const eventData = this.eventBuilder.buildPayload(updateData);
+    const encryptedData = await this.encryption.encrypt(eventData);
     try {
       const payload = {
         body: encryptedData.body,
         key: encryptedData.key,
         iv: encryptedData.iv
       };
-      await this.httpClient.post(payload);
+      const response = await this.httpClient.post(payload);
+      if (!response.success) {
+        console.error("Failed to track update:", response);
+        throw new Error(
+          `Tracking failed: ${response.error || "Unknown error"}`
+        );
+      }
+      return response;
     } catch (error) {
       console.error("Failed to track update:", error);
       throw error;

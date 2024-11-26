@@ -10,36 +10,57 @@ class HttpClient {
 
   async post(data) {
     try {
-      console.log("Making request to:", this.url);
-      console.log("Headers:", {
-        "X-Api-Key": this.apiKey
-          ? `${this.apiKey.substr(0, 4)}...${this.apiKey.substr(-4)}`
-          : "[MISSING]",
-        "X-Project-Id": this.projectId
-      });
-      console.log("Original data structure:", {
-        body_length: data.body?.length,
-        key_length: data.key?.length,
-        iv_length: data.iv?.length
-      });
+      // Ensure we're sending a proper JSON object
+      if (!data.body || !data.key || !data.iv) {
+        throw new Error("Missing required encryption fields");
+      }
 
-      console.log("Sending data lengths:", {
-        body_length: data.body?.length,
-        key_length: data.key?.length,
-        iv_length: data.iv?.length
-      });
+      const payload = {
+        body: String(data.body),
+        key: String(data.key),
+        iv: String(data.iv)
+      };
 
-      const response = await axios.post(this.url, data, {
+      // Validate minimum lengths
+      if (payload.key.length < 10 || payload.iv.length < 10) {
+        throw new Error("Key and IV must be at least 10 characters long");
+      }
+
+      const response = await axios.post(this.url, payload, {
         headers: {
           "Content-Type": "application/json",
           "X-Api-Key": this.apiKey,
           "X-Project-Id": this.projectId
         }
       });
-      return response.data;
+
+      console.log("Event Tracking Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+        headers: response.headers,
+        requestTime: new Date().toISOString()
+      });
+
+      return {
+        success: true,
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+        headers: response.headers,
+        requestTime: new Date().toISOString()
+      };
     } catch (error) {
-      console.error("Error posting data:", error);
-      throw error;
+      const errorResponse = {
+        success: false,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        error: error.message,
+        data: error.response?.data,
+        requestTime: new Date().toISOString()
+      };
+      console.error("Error posting data:", errorResponse);
+      return errorResponse;
     }
   }
 }
