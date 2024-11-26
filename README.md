@@ -35,6 +35,10 @@ Consider visiting our resources for more info about the state of the Telegram Mi
 - Customizable event tracking
 - Comprehensive error handling and logging
 
+## A Tutorial With A Sample App
+
+Check out our full [tutorial](https://github.com/TONSolutions/telemetree-node-example) to learn how to set up Telemetree for your NodeJS Telegram bot.
+
 ## Installation
 
 ```bash
