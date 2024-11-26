@@ -138,3 +138,18 @@ The SDK provides detailed response logging:
     requestTime: '2024-11-26T01:48:24.745Z'
 }
 ```
+
+### Encryption
+
+The SDK uses RSA encryption to secure event data before sending it to the Telemetree service, ensuring data privacy. The `publicKey` is fetched automatically from the Telemetree configuration service during initialization, so there’s no need to manually set it.
+
+## Other SDKs
+Telemetree SDKs are available for various frameworks and environments, making it easy to incorporate powerful analytics into any Telegram Mini App.
+- React SDK: https://github.com/TONSolutions/telemetree-react
+- Javascript integration: https://github.com/TONSolutions/telemetree-pixel
+- Python SDK: https://github.com/TONSolutions/telemetree-python
+- .NET SDK: https://github.com/MANABbl4/Telemetree.Net (community-supported)
+
+### License
+
+This SDK is licensed under the MIT License.
