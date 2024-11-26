@@ -34,7 +34,7 @@ class HttpClient {
         }
       });
 
-      console.log("API Response:", {
+      console.log("Event Tracking Response:", {
         status: response.status,
         statusText: response.statusText,
         data: response.data,

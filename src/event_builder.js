@@ -12,7 +12,6 @@ class EventBuilder {
 
   buildPayload(update, eventType = "message") {
     const from = this._getFromUser(update);
-    console.log("Building payload with from:", from);
 
     const payload = {
       application_id: this.settings.apiKey,
@@ -48,9 +47,6 @@ class EventBuilder {
   }
 
   _getFromUser(update) {
-    // Log the incoming update for debugging
-    console.log("Processing update:", JSON.stringify(update, null, 2));
-
     // Extract user information from various update types
     let from = null;
 
@@ -64,9 +60,6 @@ class EventBuilder {
     else if (update.edited_channel_post) from = update.edited_channel_post.from;
     else if (update.callback_query) from = update.callback_query.from;
     else if (update.inline_query) from = update.inline_query.from;
-
-    // Log the extracted 'from' object
-    console.log("Extracted from object:", from);
 
     // Validate we have a proper user object with required fields
     if (!from) {
