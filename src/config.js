@@ -21,17 +21,27 @@ class Config {
           }
         }
       );
+      // return {
+      //   host: response.data.host,
+      //   publicKey: response.data.public_key,
+      //   auto_capture_telegram_events: [
+      //     "message",
+      //     "edited_message",
+      //     "channel_post",
+      //     "edited_channel_post",
+      //     "inline_query",
+      //     "chosen_inline_result",
+      //     "callback_query"
+      //   ],
+      //   auto_capture_commands: []
+      // };
       return {
         host: response.data.host,
         publicKey: response.data.public_key,
         auto_capture_telegram_events: [
           "message",
           "edited_message",
-          "channel_post",
-          "edited_channel_post",
-          "inline_query",
-          "chosen_inline_result",
-          "callback_query"
+          "inline_query"
         ],
         auto_capture_commands: []
       };

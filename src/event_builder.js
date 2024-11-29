@@ -32,22 +32,48 @@ class EventBuilder {
     return payload;
   }
 
-  _getChatType(update) {
-    if (update.message?.chat) {
-      return update.message.chat.type;
-    }
-    return "N/A";
-  }
+  // _getChatType(update) {
+  //   if (update.message?.chat) {
+  //     return update.message.chat.type;
+  //   }
+  //   return "N/A";
+  // }
 
-  _getChatInstance(update) {
-    if (update.callback_query?.chat_instance) {
-      return update.callback_query.chat_instance;
-    }
-    return "0";
-  }
+  // _getChatInstance(update) {
+  //   if (update.callback_query?.chat_instance) {
+  //     return update.callback_query.chat_instance;
+  //   }
+  //   return "0";
+  // }
+
+  // _getFromUser(update) {
+  //   // Extract user information from various update types
+  //   let from = null;
+
+  //   if (!update) {
+  //     throw new Error("Update object is null or undefined");
+  //   }
+
+  //   if (update.message) from = update.message.from;
+  //   else if (update.edited_message) from = update.edited_message.from;
+  //   else if (update.channel_post) from = update.channel_post.from;
+  //   else if (update.edited_channel_post) from = update.edited_channel_post.from;
+  //   else if (update.callback_query) from = update.callback_query.from;
+  //   else if (update.inline_query) from = update.inline_query.from;
+
+  //   // Validate we have a proper user object with required fields
+  //   if (!from) {
+  //     throw new Error("No valid user data found in update object");
+  //   }
+
+  //   if (!from.id) {
+  //     throw new Error("User object missing required id field");
+  //   }
+
+  //   return from;
+  // }
 
   _getFromUser(update) {
-    // Extract user information from various update types
     let from = null;
 
     if (!update) {
@@ -56,12 +82,8 @@ class EventBuilder {
 
     if (update.message) from = update.message.from;
     else if (update.edited_message) from = update.edited_message.from;
-    else if (update.channel_post) from = update.channel_post.from;
-    else if (update.edited_channel_post) from = update.edited_channel_post.from;
-    else if (update.callback_query) from = update.callback_query.from;
     else if (update.inline_query) from = update.inline_query.from;
 
-    // Validate we have a proper user object with required fields
     if (!from) {
       throw new Error("No valid user data found in update object");
     }
@@ -83,6 +105,19 @@ class EventBuilder {
     return this.shouldTrackUpdate(update) ? update : null;
   }
 
+  // _determineEventType(update) {
+  //   if (update.message?.text?.startsWith("/")) {
+  //     return "command";
+  //   } else if (update.message) {
+  //     return "message";
+  //   } else if (update.edited_message) {
+  //     return "edited_message";
+  //   } else if (update.inline_query) {
+  //     return "inline_query";
+  //   }
+  //   return "unknown";
+  // }
+
   _determineEventType(update) {
     if (update.message?.text?.startsWith("/")) {
       return "command";
@@ -90,14 +125,8 @@ class EventBuilder {
       return "message";
     } else if (update.edited_message) {
       return "edited_message";
-    } else if (update.callback_query) {
-      return "callback_query";
     } else if (update.inline_query) {
       return "inline_query";
-    } else if (update.channel_post) {
-      return "channel_post";
-    } else if (update.edited_channel_post) {
-      return "edited_channel_post";
     }
     return "unknown";
   }
