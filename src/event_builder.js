@@ -10,7 +10,7 @@ class EventBuilder {
     this.appName = this.config.app_name;
   }
 
-  buildPayload(update, eventType = "message") {
+  buildPayload(update, eventType = "message", eventData = {}) {
     const from = this._getFromUser(update);
 
     const payload = {
@@ -26,8 +26,38 @@ class EventBuilder {
       event_source: "node-sdk",
       event_type:
         typeof eventType === "object" ? eventType.event_type : eventType,
-      app_name: this.appName
+      app_name: this.appName,
+      event_properties: eventData
     };
+
+    // If update contains message data, include it in event properties
+    if (update.message) {
+      payload.event_properties = {
+        ...payload.event_properties,
+        message_id: update.message.message_id,
+        chat_id: update.message.chat?.id,
+        chat_type: update.message.chat?.type,
+        text: update.message.text,
+        date: update.message.date
+      };
+    } else if (update.edited_message) {
+      payload.event_properties = {
+        ...payload.event_properties,
+        message_id: update.edited_message.message_id,
+        chat_id: update.edited_message.chat?.id,
+        chat_type: update.edited_message.chat?.type,
+        text: update.edited_message.text,
+        date: update.edited_message.date,
+        edit_date: update.edited_message.edit_date
+      };
+    } else if (update.inline_query) {
+      payload.event_properties = {
+        ...payload.event_properties,
+        query_id: update.inline_query.id,
+        query: update.inline_query.query,
+        offset: update.inline_query.offset
+      };
+    }
 
     return payload;
   }

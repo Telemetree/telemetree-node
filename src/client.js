@@ -24,7 +24,7 @@ class TelemetreeClient {
       throw new Error("Event name is not set.");
     }
 
-    const eventData = this.eventBuilder.buildPayload({}, eventName);
+    const eventData = this.eventBuilder.buildPayload({}, eventName, eventProperties);
 
     const encryptedData = await this.encryption.encrypt(eventData);
     try {
@@ -57,8 +57,9 @@ class TelemetreeClient {
       return;
     }
 
-    // Build payload with user data
-    const eventData = this.eventBuilder.buildPayload(updateData);
+    // Build payload with user data and event type
+    const eventType = this.eventBuilder._determineEventType(parsedUpdate);
+    const eventData = this.eventBuilder.buildPayload(updateData, eventType);
     const encryptedData = await this.encryption.encrypt(eventData);
     try {
       const payload = {
