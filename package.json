@@ -1,6 +1,6 @@
 {
   "name": "@tonsolutions/telemetree-node",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "The Telemetree Node SDK provides a convenient way to track and analyze Telegram events using the Telemetree service.",
   "keywords": [
     "telegram",
@@ -21,6 +21,7 @@
   },
   "homepage": "https://telemetree.io",
   "main": "src/index.js",
+  "types": "types/index.d.ts",
   "scripts": {
     "test": "jest"
   },
@@ -31,6 +32,7 @@
     "axios": "^1.6.2"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "typescript": "^5.3.3"
   }
 }

@@ -35,14 +35,45 @@ Consider visiting our resources for more info about the state of the Telegram Mi
 - Customizable event tracking
 - Comprehensive error handling and logging
 
-## A Tutorial With A Sample App
-
-Check out our full [tutorial](https://github.com/TONSolutions/telemetree-node-example) to learn how to set up Telemetree for your NodeJS Telegram bot.
-
 ## Installation
 
 ```bash
 npm install @tonsolutions/telemetree-node
+```
+
+## TypeScript Support
+
+The SDK includes built-in TypeScript declarations. You can use it in your TypeScript projects with full type safety and IDE support:
+
+```typescript
+import { TelemetreeClient, TelegramUpdate } from '@tonsolutions/telemetree-node';
+
+// Initialize with type checking
+const telemetree = new TelemetreeClient(
+    process.env.TELEMETREE_PROJECT_ID!,
+    process.env.TELEMETREE_API_KEY!
+);
+
+// Example of typed Telegram update
+const update: TelegramUpdate = {
+    message: {
+        message_id: 123,
+        chat: {
+            id: 456,
+            type: 'private'
+        },
+        date: Date.now()
+    }
+};
+
+// Track with type-safe properties
+await telemetree.track('custom_event', {
+    userId: 12345,
+    action: 'purchase'
+});
+
+// Track update with type checking
+await telemetree.trackUpdate(update);
 ```
 
 ## Quick Start
@@ -53,8 +84,8 @@ npm install @tonsolutions/telemetree-node
 
 2. Initialize the Telemetree client in your bot:
 
-```javascript
-const { TelemetreeClient } = require('@tonsolutions/telemetree-node');
+```typescript
+import { TelemetreeClient } from '@tonsolutions/telemetree-node';
 
 const telemetree = new TelemetreeClient(
     process.env.TELEMETREE_PROJECT_ID,
@@ -67,9 +98,9 @@ await telemetree.initialize();
 
 3. Set up event tracking in your bot handlers:
 
-```javascript
+```typescript
 // Example with node-telegram-bot-api
-bot.on('message', async (msg) => {
+bot.on('message', async (msg: any) => {
     try {
         // Track the update
         const response = await telemetree.trackUpdate(msg);
@@ -99,17 +130,35 @@ The SDK automatically tracks various Telegram events:
 - Inline queries
 - And more...
 
-### Custom Event Tracking
 
-You can also track custom events:
+### Event Properties
 
+The SDK supports two types of event properties:
+
+1. Custom Properties (Manual Tracking):
+   - Add any custom properties when tracking events manually
+   - Properties are included in the `event_properties` field
+
+2. Automatic Properties (Telegram Updates):
+   - Message events include: message_id, chat_id, chat_type, text, date
+   - Edited messages additionally include: edit_date
+   - Inline queries include: query_id, query text, offset
+
+Example of automatic properties in a message event:
 ```javascript
-await telemetree.trackEvent({
-    event_type: 'custom_event',
-    event_data: {
-        // your custom data
+// Properties captured automatically when tracking updates
+await telemetree.trackUpdate(msg);
+// The event will include properties like:
+{
+    message_id: 123,
+    chat_id: 456,
+    chat_type: 'private',
+    text: 'Hello',
+    date: '2024-01-01T12:00:00Z',
+    event_properties: {
+        // Additional custom properties if any
     }
-});
+}
 ```
 
 ## Error Handling
