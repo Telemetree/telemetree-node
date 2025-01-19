@@ -10,7 +10,7 @@ class EventBuilder {
     this.appName = this.config.app_name;
   }
 
-  buildPayload(update, eventType = "message") {
+  buildPayload(update, eventType = "message", eventData = {}) {
     const from = this._getFromUser(update);
 
     const payload = {
@@ -26,7 +26,23 @@ class EventBuilder {
       event_source: "node-sdk",
       event_type:
         typeof eventType === "object" ? eventType.event_type : eventType,
-      app_name: this.appName
+      app_name: this.appName,
+      // Preserve backward compatibility by keeping existing fields at top level
+      message_id: update.message?.message_id || update.edited_message?.message_id || undefined,
+      chat_id: update.message?.chat?.id || update.edited_message?.chat?.id || undefined,
+      chat_type: update.message?.chat?.type || update.edited_message?.chat?.type || undefined,
+      text: update.message?.text || update.edited_message?.text || undefined,
+      date: update.message?.date || update.edited_message?.date || undefined,
+      // Add new event_properties field for additional data
+      event_properties: {
+        ...eventData,
+        ...(update.edited_message && { edit_date: update.edited_message.edit_date }),
+        ...(update.inline_query && {
+          query_id: update.inline_query.id,
+          query: update.inline_query.query,
+          offset: update.inline_query.offset
+        })
+      }
     };
 
     return payload;
