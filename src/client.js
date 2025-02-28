@@ -73,7 +73,7 @@ class TelemetreeClient {
         iv: encryptedData.iv
       };
       const response = await this.httpClient.post(payload);
-      console.log('response in trackUpdate',response);
+
       if (!response.success) {
         console.error("Failed to track update:", response);
         throw new Error(
