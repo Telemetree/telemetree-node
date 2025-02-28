@@ -66,8 +66,17 @@ const update: TelegramUpdate = {
     }
 };
 
+const user: TelegramUser = {
+   id: msg.from.id,
+   username: msg.from.username,
+   first_name: msg.from.first_name,
+   last_name: msg.from.last_name,
+   is_premium: msg.from.is_premium,
+   language_code: msg.from.language_code,
+};
+
 // Track with type-safe properties
-await telemetree.track('custom_event', {
+await telemetree.track(user, 'custom_event', {
     userId: 12345,
     action: 'purchase'
 });
@@ -103,7 +112,10 @@ await telemetree.initialize();
 bot.on('message', async (msg: any) => {
     try {
         // Track the update
-        const response = await telemetree.trackUpdate(msg);
+       const update = {
+          message: msg,
+       };
+        const response = await telemetree.trackUpdate(update);
         console.log('Tracking response:', response);
     } catch (error) {
         console.error('Failed to track message:', error);

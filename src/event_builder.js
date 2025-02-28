@@ -10,10 +10,33 @@ class EventBuilder {
     this.appName = this.config.app_name;
   }
 
-  buildPayload(update, eventType = "message", eventData = {}) {
+  buildPayload(user, eventType = "message", eventData = {}) {
+    return {
+      application_id: this.settings.apiKey,
+      datetime: new Date().toISOString(),
+      username: user?.username || undefined,
+      firstname: user?.first_name || undefined,
+      lastname: user?.last_name || undefined,
+      is_premium: Boolean(user?.is_premium),
+      telegram_id: user?.id || 0,
+      language: user?.language_code || undefined,
+      session_id: Math.floor(Date.now() / 1000),
+      event_source: "node-sdk",
+      event_type:
+          typeof eventType === "object" ? eventType.event_type : eventType,
+      app_name: this.appName,
+      // Preserve backward compatibility by keeping existing fields at top level
+      // Add new event_properties field for additional data
+      event_properties: {
+        ...eventData
+      }
+    };
+  }
+
+  buildPayloadUpdate(update, eventType = "message", eventData = {}) {
     const from = this._getFromUser(update);
 
-    const payload = {
+    return {
       application_id: this.settings.apiKey,
       datetime: new Date().toISOString(),
       username: from.username || undefined,
@@ -25,7 +48,7 @@ class EventBuilder {
       session_id: Math.floor(Date.now() / 1000),
       event_source: "node-sdk",
       event_type:
-        typeof eventType === "object" ? eventType.event_type : eventType,
+          typeof eventType === "object" ? eventType.event_type : eventType,
       app_name: this.appName,
       // Preserve backward compatibility by keeping existing fields at top level
       message_id: update.message?.message_id || update.edited_message?.message_id || undefined,
@@ -36,7 +59,7 @@ class EventBuilder {
       // Add new event_properties field for additional data
       event_properties: {
         ...eventData,
-        ...(update.edited_message && { edit_date: update.edited_message.edit_date }),
+        ...(update.edited_message && {edit_date: update.edited_message.edit_date}),
         ...(update.inline_query && {
           query_id: update.inline_query.id,
           query: update.inline_query.query,
@@ -44,8 +67,6 @@ class EventBuilder {
         })
       }
     };
-
-    return payload;
   }
 
   // _getChatType(update) {
@@ -95,7 +116,7 @@ class EventBuilder {
     if (!update) {
       throw new Error("Update object is null or undefined");
     }
-
+    console.log('update log', update)
     if (update.message) from = update.message.from;
     else if (update.edited_message) from = update.edited_message.from;
     else if (update.inline_query) from = update.inline_query.from;
