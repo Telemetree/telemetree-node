@@ -15,7 +15,7 @@ class TelemetreeClient {
     this.httpClient = new HttpClient(this.settings);
   }
 
-  async track(eventName, eventProperties = {}) {
+  async track(user, eventName, eventProperties = {}) {
     if (!this.eventBuilder) {
       throw new Error("Client not initialized. Call initialize() first.");
     }
@@ -24,7 +24,11 @@ class TelemetreeClient {
       throw new Error("Event name is not set.");
     }
 
-    const eventData = this.eventBuilder.buildPayload({}, eventName, eventProperties);
+    if (!user) {
+      throw new Error("User object is null or undefined");
+    }
+
+    const eventData = this.eventBuilder.buildPayload(user, eventName, eventProperties);
 
     const encryptedData = await this.encryption.encrypt(eventData);
     try {
@@ -54,12 +58,13 @@ class TelemetreeClient {
 
     const parsedUpdate = this.eventBuilder.parseTelegramUpdate(updateData);
     if (!parsedUpdate) {
+      throw new Error("Parse error: Update object is null or undefined");
       return;
     }
 
     // Build payload with user data and event type
     const eventType = this.eventBuilder._determineEventType(parsedUpdate);
-    const eventData = this.eventBuilder.buildPayload(updateData, eventType);
+    const eventData = this.eventBuilder.buildPayloadUpdate(updateData, eventType);
     const encryptedData = await this.encryption.encrypt(eventData);
     try {
       const payload = {
@@ -68,6 +73,7 @@ class TelemetreeClient {
         iv: encryptedData.iv
       };
       const response = await this.httpClient.post(payload);
+
       if (!response.success) {
         console.error("Failed to track update:", response);
         throw new Error(

@@ -108,7 +108,8 @@ declare module '@tonsolutions/telemetree-node' {
 
   export class EventBuilder {
     constructor(settings: Config);
-    buildPayload(update: TelegramUpdate, eventType?: string, eventData?: EventProperties): TrackingPayload;
+    buildPayload(user: TelegramUser, eventType?: string, eventData?: EventProperties): TrackingPayload;
+    buildPayloadUpdate(update: TelegramUpdate, eventType?: string, eventData?: EventProperties): TrackingPayload;
     parseTelegramUpdate(updateDict: any): TelegramUpdate | null;
     shouldTrackUpdate(update: TelegramUpdate): boolean;
   }
