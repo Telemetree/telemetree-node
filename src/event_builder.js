@@ -116,7 +116,7 @@ class EventBuilder {
     if (!update) {
       throw new Error("Update object is null or undefined");
     }
-    console.log('update log', update)
+
     if (update.message) from = update.message.from;
     else if (update.edited_message) from = update.edited_message.from;
     else if (update.inline_query) from = update.inline_query.from;
