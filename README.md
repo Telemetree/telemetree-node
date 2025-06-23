@@ -132,6 +132,65 @@ TELEMETREE_PROJECT_ID=your-project-id
 TELEMETREE_API_KEY=your-api-key
 ```
 
+## Logging Configuration
+
+The SDK includes configurable logging that can help with debugging or be completely silenced for production use. By default, the SDK will log errors but not debug information.
+
+### Basic Usage
+
+```javascript
+import { TelemetreeClient } from '@tonsolutions/telemetree-node';
+
+// Disable all debug logging (recommended for production)
+const telemetree = new TelemetreeClient(
+    process.env.TELEMETREE_PROJECT_ID,
+    process.env.TELEMETREE_API_KEY,
+    {
+        logging: {
+            debug: false,  // Disable debug logs (default: false)
+            error: true    // Keep error logs (default: true)
+        }
+    }
+);
+
+// Enable debug logging for development
+const telemetreeDebug = new TelemetreeClient(
+    process.env.TELEMETREE_PROJECT_ID,
+    process.env.TELEMETREE_API_KEY,
+    {
+        logging: {
+            debug: true,   // Enable debug logs
+            info: true,    // Enable info logs (default: true)
+            warn: true,    // Enable warning logs (default: true)
+            error: true    // Enable error logs (default: true)
+        }
+    }
+);
+
+// Completely silent mode
+const telemetreeSilent = new TelemetreeClient(
+    process.env.TELEMETREE_PROJECT_ID,
+    process.env.TELEMETREE_API_KEY,
+    {
+        logging: {
+            silent: true   // Disable all logging
+        }
+    }
+);
+```
+
+### Logging Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `debug` | boolean | false | Enable debug logging (includes encryption details) |
+| `info` | boolean | true | Enable info logging |
+| `warn` | boolean | true | Enable warning logging |
+| `error` | boolean | true | Enable error logging |
+| `silent` | boolean | false | Disable all logging completely |
+
+**Note**: When `debug: true`, the SDK will log sensitive information like encryption inputs and outputs. Only enable this in development environments.
+
 ## Event Tracking
 
 The SDK automatically tracks various Telegram events:

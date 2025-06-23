@@ -1,127 +1,163 @@
-  export interface TelegramUser {
-    id: number;
-    username?: string;
-    first_name?: string;
-    last_name?: string;
-    is_premium?: boolean;
-    language_code?: string;
-  }
+export interface TelegramUser {
+	id: number;
+	username?: string;
+	first_name?: string;
+	last_name?: string;
+	is_premium?: boolean;
+	language_code?: string;
+}
 
-  export interface TelegramChat {
-    id: number;
-    type: 'private' | 'group' | 'supergroup' | 'channel';
-  }
+export interface TelegramChat {
+	id: number;
+	type: "private" | "group" | "supergroup" | "channel";
+}
 
-  export interface TelegramMessage {
-    message_id: number;
-    from?: TelegramUser;
-    chat: TelegramChat;
-    date: number;
-    text?: string;
-    edit_date?: number;
-  }
+export interface TelegramMessage {
+	message_id: number;
+	from?: TelegramUser;
+	chat: TelegramChat;
+	date: number;
+	text?: string;
+	edit_date?: number;
+}
 
-  export interface TelegramInlineQuery {
-    id: string;
-    from: TelegramUser;
-    query: string;
-    offset: string;
-  }
+export interface TelegramInlineQuery {
+	id: string;
+	from: TelegramUser;
+	query: string;
+	offset: string;
+}
 
-  export interface TelegramUpdate {
-    message?: TelegramMessage;
-    edited_message?: TelegramMessage;
-    inline_query?: TelegramInlineQuery;
-  }
+export interface TelegramUpdate {
+	message?: TelegramMessage;
+	edited_message?: TelegramMessage;
+	inline_query?: TelegramInlineQuery;
+}
 
-  export interface EventProperties {
-    [key: string]: any;
-  }
+export interface LoggingOptions {
+	debug?: boolean;
+	info?: boolean;
+	warn?: boolean;
+	error?: boolean;
+	silent?: boolean;
+}
 
-  export interface TrackingPayload {
-    application_id: string;
-    datetime: string;
-    username?: string;
-    firstname?: string;
-    lastname?: string;
-    is_premium: boolean;
-    telegram_id: number;
-    language?: string;
-    session_id: number;
-    event_source: string;
-    event_type: string;
-    app_name: string;
-    message_id?: number;
-    chat_id?: number;
-    chat_type?: string;
-    text?: string;
-    date?: number;
-    event_properties: EventProperties;
-  }
+export interface TelemetreeClientOptions {
+	logging?: LoggingOptions;
+}
 
-  export interface EncryptedEventData {
-    body: string;
-    key: string;
-    iv: string;
-  }
+export interface EventProperties {
+	[key: string]: any;
+}
 
-  export interface TrackingResponse {
-    success: boolean;
-    error?: string;
-  }
+export interface TrackingPayload {
+	application_id: string;
+	datetime: string;
+	username?: string;
+	firstname?: string;
+	lastname?: string;
+	is_premium: boolean;
+	telegram_id: number;
+	language?: string;
+	session_id: number;
+	event_source: string;
+	event_type: string;
+	app_name: string;
+	message_id?: number;
+	chat_id?: number;
+	chat_type?: string;
+	text?: string;
+	date?: number;
+	event_properties: EventProperties;
+}
 
-  export interface BotTrackingConfigData {
-    host: string;
-    auto_capture_telegram_events: string[];
-    auto_capture_commands: string[];
-    app_name?: string;
-    publicKey?: string;
-  }
+export interface EncryptedEventData {
+	body: string;
+	key: string;
+	iv: string;
+}
 
-  export class BotTrackingConfig {
-    constructor(data: BotTrackingConfigData);
-    validate(data: BotTrackingConfigData): void;
-  }
+export interface TrackingResponse {
+	success: boolean;
+	error?: string;
+}
 
-  export interface EncryptedEventData {
-    encrypted_message: string;
-    encrypted_key: string;
-    encrypted_iv: string;
-  }
+export interface BotTrackingConfigData {
+	host: string;
+	auto_capture_telegram_events: string[];
+	auto_capture_commands: string[];
+	app_name?: string;
+	publicKey?: string;
+}
 
-  export class EncryptedEvent {
-    constructor(data: EncryptedEventData);
-    validate(data: EncryptedEventData): void;
-  }
+export class BotTrackingConfig {
+	constructor(data: BotTrackingConfigData);
+	validate(data: BotTrackingConfigData): void;
+}
 
-  export class Config {
-    constructor(projectId: string, apiKey: string);
-    initialize(): Promise<void>;
-    config: BotTrackingConfig;
-  }
+export interface EncryptedEventData {
+	encrypted_message: string;
+	encrypted_key: string;
+	encrypted_iv: string;
+}
 
-  export class EncryptionService {
-    constructor(publicKey: string);
-    encrypt(data: any): Promise<EncryptedEventData>;
-  }
+export class EncryptedEvent {
+	constructor(data: EncryptedEventData);
+	validate(data: EncryptedEventData): void;
+}
 
-  export class EventBuilder {
-    constructor(settings: Config);
-    buildPayload(user: TelegramUser, eventType?: string, eventData?: EventProperties): TrackingPayload;
-    buildPayloadUpdate(update: TelegramUpdate, eventType?: string, eventData?: EventProperties): TrackingPayload;
-    parseTelegramUpdate(updateDict: any): TelegramUpdate | null;
-    shouldTrackUpdate(update: TelegramUpdate): boolean;
-  }
+export class Config {
+	constructor(projectId: string, apiKey: string);
+	initialize(): Promise<void>;
+	config: BotTrackingConfig;
+}
 
-  export class HttpClient {
-    constructor(settings: Config);
-    post(payload: EncryptedEventData): Promise<TrackingResponse>;
-  }
+export class EncryptionService {
+	constructor(publicKey: string);
+	encrypt(data: any): Promise<EncryptedEventData>;
+}
 
-  export class TelemetreeClient {
-    constructor(projectId: string, apiKey: string);
-    initialize(): Promise<void>;
-    track(user: TelegramUser, eventName: string, eventProperties?: EventProperties): Promise<TrackingResponse>;
-    trackUpdate(updateData: TelegramUpdate): Promise<TrackingResponse | void>;
-  }
+export class EventBuilder {
+	constructor(settings: Config);
+	buildPayload(
+		user: TelegramUser,
+		eventType?: string,
+		eventData?: EventProperties,
+	): TrackingPayload;
+	buildPayloadUpdate(
+		update: TelegramUpdate,
+		eventType?: string,
+		eventData?: EventProperties,
+	): TrackingPayload;
+	parseTelegramUpdate(updateDict: any): TelegramUpdate | null;
+	shouldTrackUpdate(update: TelegramUpdate): boolean;
+}
 
+export class HttpClient {
+	constructor(settings: Config);
+	post(payload: EncryptedEventData): Promise<TrackingResponse>;
+}
+
+export class Logger {
+	constructor(options?: LoggingOptions);
+	debug(...args: any[]): void;
+	info(...args: any[]): void;
+	warn(...args: any[]): void;
+	error(...args: any[]): void;
+	log(...args: any[]): void;
+}
+
+export class TelemetreeClient {
+	constructor(
+		projectId: string,
+		apiKey: string,
+		options?: TelemetreeClientOptions,
+	);
+	initialize(): Promise<void>;
+	track(
+		user: TelegramUser,
+		eventName: string,
+		eventProperties?: EventProperties,
+	): Promise<TrackingResponse>;
+	trackUpdate(updateData: TelegramUpdate): Promise<TrackingResponse | void>;
+}
