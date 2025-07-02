@@ -1,40 +1,40 @@
 {
-	"name": "@tonsolutions/telemetree-node",
-	"version": "0.5.0",
-	"description": "The Telemetree Node SDK provides a convenient way to track and analyze Telegram events using the Telemetree service.",
-	"keywords": [
-		"telegram",
-		"analytics",
-		"telemetry",
-		"sdk",
-		"bot",
-		"nodejs"
-	],
-	"author": "Vlad Arbatov",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/TONSolutions/telemetree-node.git"
-	},
-	"bugs": {
-		"url": "https://github.com/TONSolutions/telemetree-node/issues"
-	},
-	"homepage": "https://telemetree.io",
-	"main": "src/index.js",
-	"types": "types/index.d.ts",
-	"scripts": {
-		"test": "jest"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"dependencies": {
-		"axios": "^1.6.2"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "2.0.6",
-		"jest": "^29.7.0",
-		"typescript": "^5.3.3",
-		"ultracite": "5.0.29"
-	}
+  "name": "@tonsolutions/telemetree-node",
+  "version": "0.5.1",
+  "description": "The Telemetree Node SDK provides a convenient way to track and analyze Telegram events using the Telemetree service.",
+  "keywords": [
+    "telegram",
+    "analytics",
+    "telemetry",
+    "sdk",
+    "bot",
+    "nodejs"
+  ],
+  "author": "Vlad Arbatov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TONSolutions/telemetree-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TONSolutions/telemetree-node/issues"
+  },
+  "homepage": "https://telemetree.io",
+  "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "jest"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.0.6",
+    "jest": "^29.7.0",
+    "typescript": "^5.3.3",
+    "ultracite": "5.0.29"
+  }
 }
