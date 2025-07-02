@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { defaultLogger } = require("./logger");
 const wasmExecPath = path.join(__dirname, "wasm_exec.js");
-require(wasmExecPath);
+const initWasmExec = require(wasmExecPath);
 
 class EncryptionService {
 	constructor(publicKey, logger = defaultLogger) {
@@ -16,6 +16,8 @@ class EncryptionService {
 	async initializeWasm() {
 		if (this.isInitialized) return;
 
+		// Initialize wasm_exec with the logger
+		initWasmExec(this.logger);
 		const go = new Go();
 		try {
 			const wasmPath = path.join(__dirname, "analytics.wasm");

@@ -4,7 +4,7 @@
 //
 // This file has been modified for use by the TinyGo compiler.
 
-(() => {
+module.exports = (logger) => {
 	// Map multiple JavaScript environments to a single common API,
 	// preferring web standards over Node.js API.
 	//
@@ -46,7 +46,11 @@
 				outputBuf += decoder.decode(buf);
 				const nl = outputBuf.lastIndexOf("\n");
 				if (nl != -1) {
-					console.log(outputBuf.substr(0, nl));
+					if (logger && logger.info) {
+						logger.info(outputBuf.substr(0, nl));
+					} else {
+						console.log(outputBuf.substr(0, nl));
+					}
 					outputBuf = outputBuf.substr(nl + 1);
 				}
 				return buf.length;
@@ -133,7 +137,8 @@
 	let reinterpretBuf = new DataView(new ArrayBuffer(8));
 	var logLine = [];
 
-	global.Go = class {
+	if (!global.Go) {
+		global.Go = class {
 		constructor() {
 			this._callbackTimeouts = new Map();
 			this._nextCallbackTimeoutID = 1;
@@ -255,14 +260,22 @@
 										// write line
 										let line = decoder.decode(new Uint8Array(logLine));
 										logLine = [];
-										console.log(line);
+										if (logger && logger.info) {
+											logger.info(line);
+										} else {
+											console.log(line);
+										}
 									} else {
 										logLine.push(c);
 									}
 								}
 							}
 						} else {
-							console.error('invalid file descriptor:', fd);
+							if (logger && logger.error) {
+								logger.error('invalid file descriptor:', fd);
+							} else {
+								console.error('invalid file descriptor:', fd);
+							}
 						}
 						mem().setUint32(nwritten_ptr, nwritten, true);
 						return 0;
@@ -300,7 +313,11 @@
 					"syscall/js.finalizeRef": (v_ref) => {
 						// Note: TinyGo does not support finalizers so this should never be
 						// called.
-						console.error('syscall/js.finalizeRef not implemented');
+						if (logger && logger.error) {
+							logger.error('syscall/js.finalizeRef not implemented');
+						} else {
+							console.error('syscall/js.finalizeRef not implemented');
+						}
 					},
 
 					// func stringVal(value string) ref
@@ -496,6 +513,7 @@
 			};
 		}
 	}
+	}
 
 	if (
 		global.require &&
@@ -505,7 +523,11 @@
 		!global.process.versions.electron
 	) {
 		if (process.argv.length != 3) {
-			console.error("usage: go_js_wasm_exec [wasm binary] [arguments]");
+			if (logger && logger.error) {
+				logger.error("usage: go_js_wasm_exec [wasm binary] [arguments]");
+			} else {
+				console.error("usage: go_js_wasm_exec [wasm binary] [arguments]");
+			}
 			process.exit(1);
 		}
 
@@ -513,8 +535,12 @@
 		WebAssembly.instantiate(fs.readFileSync(process.argv[2]), go.importObject).then((result) => {
 			return go.run(result.instance);
 		}).catch((err) => {
-			console.error(err);
+			if (logger && logger.error) {
+				logger.error(err);
+			} else {
+				console.error(err);
+			}
 			process.exit(1);
 		});
 	}
-})();
+};
